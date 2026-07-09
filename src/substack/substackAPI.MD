@@ -9,9 +9,9 @@ Substack does have RSS. From what I understand RSS is a way of shipping/publishi
 Note tags and explore tabs do not have RSS. only publications/individual creators have RSS so they have to come from specific writers.
 Cannot scrape substack due to TOS. Two possible workarounds
 1. Using playwright to open a new browser does not subscribe to the TOS
-2. Make a databse of well known authors.
+2. Make a database of well known authors.
 
-There will be an toggleable playwright scraper present in this project. 
+There will be an optional scraper. 
 
 # Solution
 
@@ -48,6 +48,9 @@ Json for each post will be structured as the below
 
 There needs to be an insert function.
 there needs to be a function that constructs from a stored config file of sorts that has a list of subscribed authors
+
+possible tags 
+Art & Illustration, Business, Climate & Environment, Comics, Crypto, Culture, Design, Education, Faith & Spirituality, Fashion & Beauty, Fiction, Film & TV, Finance, Food & Drink, Health & Wellness, Health Politics, History, Home & Garden, Humor, International, Literature, Music, News, Parenting, Philosophy, Podcasts, Science, Sports, Technology, Travel, U.S. Politics, World Politics
 
 # How is this likely to be used
 - When finding new articles first scrape pay attention list. If unavailable scrape the excluded join with specific topics.

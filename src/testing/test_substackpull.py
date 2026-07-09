@@ -6,9 +6,9 @@ def test_getRss():
     l = "natinyarn"
     #https://natinyarn.substack.com/feed is the target feed
     response = getFullResponseFromSubStack(setupURL(l))
-    responseDict = json.loads(response)[0]
+    responseDict = response[0]
     # print(responseDict) # visual confirmation if needed
-    assert responseDict["Author"] == "Natin Yarn"
+    assert responseDict["author"] == "Natin Yarn"
     assert responseDict["text"]
 
 
