@@ -3,6 +3,12 @@ import feedparser
 from bs4 import BeautifulSoup
 import json
 import datetime
+from time import sleep
+
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
+}   
 
 class SubstackException(Exception):
     pass
@@ -21,23 +27,28 @@ def setupURL(contentCreatorName: str) -> str:
 # Takes in a list of one stubstack url. Gets the feed response. 
 def getFullResponseFromSubStack(feedUrl: str, date=None) -> list[dict]:
     jsonResponse = []
-    rss = feedparser.parse(feedUrl)
-
+    rss = feedparser.parse(feedUrl,agent= HEADERS["User-Agent"])
+    
     # 404/410 means the publication no longer exists at this URL. check this
     # before bozo, since a 404 also trips bozo (the body isn't valid feed XML).
-    if rss.get("status") in (404, 410):
+    statusCode = rss.get("status")
+    if statusCode in (404, 410):
         raise FeedNotFoundException(f"Feed '{feedUrl}' does not exist (HTTP {rss.status})")
+    
+    elif statusCode == 429:
+        sleep(2)
+        rss = feedparser.parse(feedUrl,agent= HEADERS["User-Agent"])
 
     # feedparser sets bozo when the feed couldn't be cleanly fetched/parsed
     # (misspelled URL, DNS failure, 403 block, non-XML response, ...).
-    if rss.bozo:
-        print("bozo failure")
+    elif rss.bozo:
+        print("bozo failure: " + feedUrl + ":" + str(rss.get("status")))
         raise SubstackException(f"Could not parse feed '{feedUrl}': {rss.bozo_exception}")
         
 
     entries = rss.entries
     if len(entries) == 0:
-        print("empty failure")
+        print("emp failure: " + feedUrl + ":" + str(rss.get("status")))
         raise SubstackException(f"Feed '{feedUrl}' returned no entries")
 
     author = entries[0].get("author","")

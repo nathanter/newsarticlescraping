@@ -118,6 +118,11 @@ def main() -> None:
         help="Print the number of creators (handles) in the database.",
     )
 
+    sub.add_parser(
+        "categories",
+        help="List all Substack categories (the possible tags) with their ids.",
+    )
+
     args = parser.parse_args()
 
     if args.command == "setup":
@@ -129,6 +134,9 @@ def main() -> None:
         print(f"Wrote {len(articles)} article(s) to {args.out}")
     elif args.command == "count":
         print(countHandles())
+    elif args.command == "categories":
+        for name, cid in sorted(scraper.list_all_categories().items()):
+            print(f"{cid:5}  {name}")
 
 
 if __name__ == "__main__":

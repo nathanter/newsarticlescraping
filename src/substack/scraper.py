@@ -37,7 +37,12 @@ def getUsersinCategory(id:int) -> list[str]:
         resp = r.json()
         newsletters = resp.get("publications", [])
         for pub in newsletters:
-            handle = pub.get("author_handle")
+            # keep English publications, plus any with no language set;
+            # drop only those explicitly tagged another language
+            lang = pub.get("language")
+            if lang and lang != "en":
+                continue
+            handle = pub.get("subdomain") or pub.get("author_handle")
             if handle:
                 allAuthors.append(handle)
     return allAuthors
