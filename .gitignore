@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 *.db
 src/testing/
+articles.json
+hnposts

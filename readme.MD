@@ -1,5 +1,2 @@
-Setup of tools made to get good a bunch of substack articles for model training using substack and hackernews RSS.
+Setup of tools made to get good a bunch of substack articles and hackernews posts for model training using substack and hackernews respective RSS.
 
-
-
-todo: fix the 302 issue, somethign to do with domains.
