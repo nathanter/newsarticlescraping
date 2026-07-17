@@ -1,10 +1,21 @@
 import argparse
 import datetime
 import json
+import os
 
 from src.substack import scraper
 from src.substack import substack
+from src.substack.databse import datasetup
 from src.substack.databse import ssdb
+
+
+# anchor the output folder to the project root (../../ from src/substack) so the
+# write lands in the same place no matter which cwd the tool is launched from
+BASE_DIR = os.path.dirname(__file__)
+folderpath = os.path.join(BASE_DIR, "..", "..", "substacks")
+
+# hand-curated creators live alongside the db, one per line: "handle: Tag1, Tag2"
+CREATOR_RECS_PATH = os.path.join(BASE_DIR, "databse", "creatorRecs")
 
 
 
@@ -70,6 +81,13 @@ def dbsetup() -> None:
     # use the scraper to add creators, each tagged with its explore category
     db = ssdb.SubstackDB()
     try:
+        # first pull in the hand-curated creators from creatorRecs, if present
+        if os.path.exists(CREATOR_RECS_PATH):
+            loaded = datasetup.loadCreators(db, CREATOR_RECS_PATH)
+            print(f"loaded {loaded} creator(s) from creatorRecs")
+        else:
+            print(f"no creatorRecs file at {CREATOR_RECS_PATH}, skipping manual load")
+
         cats = scraper.list_all_categories()
         progress = 0
         for categoryName, categoryId in cats.items():
@@ -81,9 +99,12 @@ def dbsetup() -> None:
         db.close()
 
 
-def writeArticles(articles: list[dict], path: str) -> None:
+def writeArticles(articles: list[dict], path: str) -> str:
+    os.makedirs(folderpath, exist_ok=True)
+    path = os.path.normpath(os.path.join(folderpath, str(datetime.date.today()) + "-" + path))
     with open(path, "w") as f:
         json.dump(articles, f, ensure_ascii=False, indent=2)
+    return path
 
 
 def main() -> None:
@@ -130,8 +151,8 @@ def main() -> None:
         print("Database populated.")
     elif args.command == "articles":
         articles = getTaggedArticles(args.tag) if args.tag else getMassArticles()
-        writeArticles(articles, args.out)
-        print(f"Wrote {len(articles)} article(s) to {args.out}")
+        out = writeArticles(articles, args.out)
+        print(f"Wrote {len(articles)} article(s) to {out}")
     elif args.command == "count":
         print(countHandles())
     elif args.command == "categories":

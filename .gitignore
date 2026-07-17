@@ -6,3 +6,5 @@ __pycache__/
 src/testing/
 articles.json
 hnposts
+substacks
+newsposts

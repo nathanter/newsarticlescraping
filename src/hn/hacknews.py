@@ -16,8 +16,11 @@ def main():
         jsonResponse.append({
             "title": entry.get("title"),
             "link": entry.get("comments"),
-            "published": entry.get("published"),
-            "tags" : ["Technology","Science"]
+            "date": entry.get("published"),
+            "author": None,
+            "tags" : ["Technology","Science"],
+            "text": entry.get("title")
+
         })
 
     return jsonResponse
