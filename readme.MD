@@ -14,3 +14,30 @@ Json should be formatted as
 }
 ]
 ```
+
+
+# to run each set of tools
+
+setup venv first:
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+substack
+``` 
+python -m src.substack.getTraining setup  
+python -m src.substack.getTraining articles
+
+```
+
+hn 
+```
+python src/hn/hacknews.py --run
+```
+
+
+other
+```
+python src/variousNewsRss/main.py --run
+```
