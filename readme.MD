@@ -1,4 +1,4 @@
-Setup of tools made to get good a bunch of substack articles and hackernews posts for model training using substack and hackernews respective RSS.
+Setup of tools made to get good a bunch of substack articles and hackernews posts for model training using substack and hackernews respective RSS. Json is formatted for this project.
 
 each tool returns a json file into a folder in the base directory. 
 Json should be formatted as 
@@ -24,20 +24,22 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-substack
+## substack
 ``` 
 python -m src.substack.getTraining setup  
 python -m src.substack.getTraining articles
 
 ```
 
-hn 
+## hn 
 ```
 python src/hn/hacknews.py --run
 ```
 
 
-other
+## other
+note: add wanted news rss to rsss.csv
+follow format of link,Tag
 ```
 python src/variousNewsRss/main.py --run
 ```
