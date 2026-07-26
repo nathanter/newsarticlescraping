@@ -5,6 +5,7 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
 }   
 
+PAGES = 3 # for database setup. this number x25 is the amount of creators it will attempt to add
 
 def list_all_categories() -> dict[str, int]:
     """
@@ -24,8 +25,8 @@ def list_all_categories() -> dict[str, int]:
     return categories
 
 
-def getUsersinCategory(id:int) -> list[str]:
-    pages = 5
+def getUsersinCategory(id:int) -> list[tuple[str, int]]:
+    pages = PAGES  #each page is 25 creators. tune as you will
     url = f"https://substack.com/api/v1/category/public/{id}/all?page="
     #
     allAuthors = []
@@ -44,5 +45,5 @@ def getUsersinCategory(id:int) -> list[str]:
                 continue
             handle = pub.get("subdomain") or pub.get("author_handle")
             if handle:
-                allAuthors.append(handle)
+                allAuthors.append((handle, page))
     return allAuthors

@@ -3,28 +3,28 @@ import datetime
 import json
 import os
 
-from src.substack import scraper
-from src.substack import substack
-from src.substack.databse import datasetup
-from src.substack.databse import ssdb
+from . import scraper
+from . import substack
+from .databse import datasetup
+from .databse import ssdb
 
 
-# anchor the output folder to the project root (../../ from src/substack) so the
+# anchor the output folder to the project root (../../ from newsarticleapi/substack) so the
 # write lands in the same place no matter which cwd the tool is launched from
 BASE_DIR = os.path.dirname(__file__)
 folderpath = os.path.join(BASE_DIR, "..", "..", "substacks")
 
 # hand-curated creators live alongside the db, one per line: "handle: Tag1, Tag2"
 CREATOR_RECS_PATH = os.path.join(BASE_DIR, "databse", "creatorRecs")
+oneDayAgo = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
 
 
 
-
-def _collectArticles(db: ssdb.SubstackDB, handles: list[str]) -> list[dict]:
+def collectArticles(db: ssdb.SubstackDB, handles: list[str],timeCutoff, amountOfArticles : int = 20) -> list[dict]:
 
     # only keep posts from the last 7 days; getFullResponseFromSubStack skips
     # anything published before this cutoff
-    oneWeekAgo = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(weeks=1)
+  
 
     massResponse = []
     for handle in handles:
@@ -32,7 +32,7 @@ def _collectArticles(db: ssdb.SubstackDB, handles: list[str]) -> list[dict]:
         tags = db.getTags(handle)
 
         try:
-            articles = substack.getFullResponseFromSubStack(url, oneWeekAgo)
+            articles = substack.getFullResponseFromSubStack(url, timeCutoff)
         except substack.FeedNotFoundException:
             # url is permanently gone (404/410) — drop it so we stop retrying
             db.deleteCreator(handle)
@@ -43,28 +43,25 @@ def _collectArticles(db: ssdb.SubstackDB, handles: list[str]) -> list[dict]:
 
         for article in articles:
             article["tags"] = tags
-        massResponse.extend(articles)
+            massResponse.append(article)
+            if len(massResponse) >= amountOfArticles:
+                return massResponse
 
     return massResponse
 
 
-def getTaggedArticles(tag: str) -> list[dict]:
+def getArticles(tag: str | None = None, timeCutoff=oneDayAgo, amount: int = 20) -> list[dict]:
+    # tag=None pulls every creator; a tag pulls only creators carrying it.
+    # each article is stamped with its creator's tags inside collectArticles.
     db = ssdb.SubstackDB()
     try:
-        handles = db.getHandlesByTag(tag)
-        if not handles:
-            raise ValueError(f"no creators found for tag '{tag}'")
-        return _collectArticles(db, handles)
-    finally:
-        db.close()
-
-
-
-def getMassArticles() -> list[dict]:
-    # every creator in the db, each article stamped with that creator's tags
-    db = ssdb.SubstackDB()
-    try:
-        return _collectArticles(db, db.getAllHandles())
+        if tag is None:
+            handles = db.getAllHandles()
+        else:
+            handles = db.getHandlesByTag(tag)
+            if not handles:
+                raise ValueError(f"no creators found for tag '{tag}'")
+        return collectArticles(db, handles, timeCutoff, amount)
     finally:
         db.close()
 
@@ -91,10 +88,12 @@ def dbsetup() -> None:
         cats = scraper.list_all_categories()
         progress = 0
         for categoryName, categoryId in cats.items():
-            for handle in scraper.getUsersinCategory(categoryId):
+            for handle, page in scraper.getUsersinCategory(categoryId):
                 progress += 1
                 print(f"progress: {progress}")
-                db.insertCreator(handle, [categoryName], substack.setupURL(handle))
+
+                rating = page
+                db.insertCreator(handle, [categoryName], substack.setupURL(handle), rating=rating)
     finally:
         db.close()
 
@@ -133,7 +132,19 @@ def main() -> None:
         default="articles.json",
         help="Output JSON file path (default: articles.json).",
     )
+    articlesParser.add_argument(
+        "-d", "--days",
+        type=int,
+        default=1,
+        help="Only keep posts from the last N days (default: 1).",
+    )
 
+    articlesParser.add_argument(
+        "-n", "--amount",
+        type=int,
+        default=20,
+        help="Maximum number of articles to fetch (default: 20).",
+    )
     sub.add_parser(
         "count",
         help="Print the number of creators (handles) in the database.",
@@ -150,9 +161,12 @@ def main() -> None:
         dbsetup()
         print("Database populated.")
     elif args.command == "articles":
-        articles = getTaggedArticles(args.tag) if args.tag else getMassArticles()
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=args.days)
+        articles = getArticles(args.tag, cutoff, args.amount)
         out = writeArticles(articles, args.out)
+        
         print(f"Wrote {len(articles)} article(s) to {out}")
+        return articles
     elif args.command == "count":
         print(countHandles())
     elif args.command == "categories":

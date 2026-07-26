@@ -1,6 +1,6 @@
 import sys
 
-from src.substack.databse.ssdb import SubstackDB
+from .ssdb import SubstackDB
 
 
 def parseLine(line: str) -> tuple[str, list[str]] | None:
@@ -23,14 +23,14 @@ def loadCreators(db: SubstackDB, path: str) -> int:
             if parsed is None:
                 continue
             name, tags = parsed
-            db.insertCreator(name, tags=tags)
+            db.insertCreator(name, tags=tags,rating=0)
             count += 1
     return count
 
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("usage: python -m src.substack.databse.datasetup <file>")
+        print("usage: python -m newsarticleapi.substack.databse.datasetup <file>")
         sys.exit(1)
 
     path = sys.argv[1]

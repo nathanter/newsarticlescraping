@@ -60,6 +60,10 @@ def getFullResponseFromSubStack(feedUrl: str, date=None) -> list[dict]:
     for article in entries:
         # feedparser gives published_parsed as a UTC struct_time, or None when undated
         publishedStruct = article.get("published_parsed")
+
+        
+        # breaks apart the 9 element array returned by feedparser
+        # converts it to UTC
         publishedDate = (
             datetime.datetime(*publishedStruct[:6], tzinfo=datetime.timezone.utc)
             if publishedStruct else None

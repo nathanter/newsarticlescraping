@@ -43,11 +43,11 @@ Json for each post will be structured as the below
 # Database.
 3 tables in the database. all are strings
 
-| handle | Url |
+| handle | Url | ranking |
 
 | handle | tag |
 
-| handle | (This table is used for subscribed authors and prioritization)
+
 
 There needs to be an insert function.
 there needs to be a function that constructs from a stored config file of sorts that has a list of subscribed authors
@@ -76,20 +76,20 @@ This is built with cli. You can also download and import the files and use them 
 
 ## Setup Databse
 ```
-python -m src.substack.getTraining setup # populate database with popular authors
+python -m newsarticleapi.substack.getTraining setup # populate database with popular authors
 ```
 
 ## database info 
 ```
-python -m src.substack.getTraining count
+python -m newsarticleapi.substack.getTraining count
 ```
 
 ```
-python -m src.substack.getTraining categories
+python -m newsarticleapi.substack.getTraining categories
 ```
 
 ## get articles
 ```
-python -m src.substack.getTraining articles --tag "Technology" -o tech.json
+python -m newsarticleapi.substack.getTraining articles --tag "Technology" -o tech.json
 ```
 to run without a specific tag, remove the -- tag and tag name.

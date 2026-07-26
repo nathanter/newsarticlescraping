@@ -1,5 +1,5 @@
-from src.substack.substack import getFullResponseFromSubStack
-from src.substack.substack import setupURL
+from newsarticleapi.substack.substack import getFullResponseFromSubStack
+from newsarticleapi.substack.substack import setupURL
 import json
 
 def test_getRss():

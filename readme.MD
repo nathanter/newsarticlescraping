@@ -26,14 +26,14 @@ pip install -r requirements.txt
 ```
 ## substack
 ``` 
-python -m src.substack.getTraining setup  
-python -m src.substack.getTraining articles
+python -m newsarticleapi.substack.getTraining setup  
+python -m newsarticleapi.substack.getTraining articles
 
 ```
 
 ## hn 
 ```
-python src/hn/hacknews.py --run
+python newsarticleapi/hn/hacknews.py --run
 ```
 
 
@@ -41,5 +41,7 @@ python src/hn/hacknews.py --run
 note: add wanted news rss to rsss.csv
 follow format of link,Tag
 ```
-python src/variousNewsRss/main.py --run
+python newsarticleapi/variousNewsRss/main.py --run
+# only keep posts from the last N days (default: 1)
+python newsarticleapi/variousNewsRss/main.py --run --days 7
 ```
