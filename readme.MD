@@ -45,3 +45,10 @@ python newsarticleapi/variousNewsRss/main.py --run
 # only keep posts from the last N days (default: 1)
 python newsarticleapi/variousNewsRss/main.py --run --days 7
 ```
+
+
+## to import
+best practice is probably to git clone and use a editable install
+```
+pip install -e {path}
+```

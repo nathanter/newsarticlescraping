@@ -74,7 +74,3 @@ def loadRecent(x: int) -> dict[str, list[dict]]:
     return streams
 
 
-if __name__ == "__main__":
-    # manual check: load the last x files per source (default 1), still split by stream
-    x = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-    print(json.dumps(loadRecent(x), ensure_ascii=False, indent=2))

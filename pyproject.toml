@@ -1,4 +1,3 @@
-ok
 [build-system]
 # The build backend pip uses to turn this source tree into a wheel.
 # setuptools is pure-Python here, so the "build" is instant and pip runs it — not you.

@@ -12,6 +12,17 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
 }
 
+
+# raised when a feed in rsss.csv can't be read — dead url, block, or malformed xml.
+# mirrors SubstackException (substack.py:13) so both scrapers signal a bad feed the
+# same way; carries the url and http status so the caller can report which line failed.
+class FeedException(Exception):
+    def __init__(self, feedUrl: str, status=None, reason=None):
+        self.feedUrl = feedUrl
+        self.status = status
+
+        super().__init__(f"{feedUrl} : status={status}")
+
 # anchor paths to this file so the tool works no matter which cwd it's launched from
 BASE_DIR = os.path.dirname(__file__)
 CSV_PATH = os.path.join(BASE_DIR, "rsss.csv")
@@ -31,7 +42,13 @@ def getListofRssLinks(filePath: str) -> list[tuple[str, ...]]:
     return urlAndTags
 
 
-def _extractText(entry) -> str:
+def writeRssLinks(filePath: str, urlAndTags: list[tuple[str, ...]]) -> None:
+    # inverse of getListofRssLinks — same "url, tag1, tag2, ..." row per line.
+    with open(filePath, "w", newline="") as f:
+        csv.writer(f).writerows(urlAndTags)
+
+
+def extractText(entry) -> str:
 
     rawHTML = entry.get("content", [{}])[0].get("value")
     if rawHTML is None:
@@ -45,9 +62,10 @@ def getFullResponseFromFeed(feedUrl: str, tags: list[str], cutoff: datetime.date
     jsonResponse = []
     rss = feedparser.parse(feedUrl, agent=HEADERS["User-Agent"])
 
+    # bozo alone isn't fatal — plenty of feeds parse with warnings and still hand
+    # back entries. no entries as well means there's nothing to salvage.
     if rss.bozo and not rss.entries:
-        print("feed failure: " + feedUrl + " : " + str(rss.get("status")) + " : " + str(rss.get("bozo_exception")))
-        return jsonResponse
+        raise FeedException(feedUrl, rss.get("status"), rss.get("bozo_exception"))
 
     # a naive cutoff is assumed to be UTC so it compares cleanly with feed dates
     if cutoff is not None and cutoff.tzinfo is None:
@@ -72,7 +90,7 @@ def getFullResponseFromFeed(feedUrl: str, tags: list[str], cutoff: datetime.date
             "source": entry.get("link", ""),
             "author": entry.get("author", ""),
             "date": publishedDate.isoformat() if publishedDate else "",
-            "text": _extractText(entry),
+            "text": extractText(entry),
         })
 
     return jsonResponse
@@ -80,11 +98,25 @@ def getFullResponseFromFeed(feedUrl: str, tags: list[str], cutoff: datetime.date
 
 def main(cutoff: datetime.datetime | None = oneDayAgo) -> list[dict]:
     jsonResponse = []
+    successfullLinks = []
+    failed = False
     for row in getListofRssLinks(CSV_PATH):
         if not row:  # skip blank lines in the CSV
             continue
         url, tags = row[0], list(row[1:])
-        jsonResponse.extend(getFullResponseFromFeed(url, tags, cutoff))
+        # one unreadable feed shouldn't cost us the rest, so record it and carry on
+        try:
+            jsonResponse.extend(getFullResponseFromFeed(url, tags, cutoff))
+            successfullLinks.append(row)
+        except FeedException as exc:
+            print("feed failure: " + str(exc))
+            failed = True
+
+
+    # only rewrite when something actually failed, so a clean run leaves the file alone
+    if failed:
+        writeRssLinks(CSV_PATH, successfullLinks)
+    
 
     return jsonResponse
 

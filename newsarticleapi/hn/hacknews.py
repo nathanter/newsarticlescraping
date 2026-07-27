@@ -1,13 +1,16 @@
 import feedparser
 import argparse
 import json
+import os
 from datetime import date, datetime, timedelta, timezone
 
 
 
 feedUrl = "https://news.ycombinator.com/rss"
 
-folderpath = "hnposts/"
+
+BASE_DIR = os.path.dirname(__file__)
+folderpath = os.path.join(BASE_DIR, "..", "..", "hnposts")
 
 oneDayAgo = datetime.now(timezone.utc) - timedelta(days=1)
 
@@ -65,7 +68,10 @@ def cli():
         if args.debug:
             print(json.dumps(jsonResponse, indent=2))
         if args.run:
-            writePath = folderpath + str(date.today()) + "-hn.json"
+            os.makedirs(folderpath, exist_ok=True)
+            writePath = os.path.normpath(
+                os.path.join(folderpath, str(date.today()) + "-hn.json")
+            )
             with open(writePath, "w") as f:
                 json.dump(jsonResponse, f, ensure_ascii=False, indent=2)
 
