@@ -28,25 +28,20 @@ def setupURL(contentCreatorName: str) -> str:
 def getFullResponseFromSubStack(feedUrl: str, date=None) -> list[dict]:
     jsonResponse = []
     rss = feedparser.parse(feedUrl,agent= HEADERS["User-Agent"])
-
-    # Retry transient failures a few times before giving up.
-    # retries on timeouts /overloading the rss or redirest that just itermittently fail.
-    # small tradeoff on performance but should be is schedueled runs daily.
-    attempts = 0
-    while (rss.get("status") == 429 or rss.bozo) and rss.get("status") not in (404, 410) and attempts < 3:
-        sleep(2)
-        rss = feedparser.parse(feedUrl,agent= HEADERS["User-Agent"])
-        attempts += 1
-
+    
     # 404/410 means the publication no longer exists at this URL. check this
     # before bozo, since a 404 also trips bozo (the body isn't valid feed XML).
     statusCode = rss.get("status")
     if statusCode in (404, 410):
         raise FeedNotFoundException(f"Feed '{feedUrl}' does not exist (HTTP {rss.status})")
+    
+    elif statusCode == 429:
+        sleep(2)
+        rss = feedparser.parse(feedUrl,agent= HEADERS["User-Agent"])
 
     # feedparser sets bozo when the feed couldn't be cleanly fetched/parsed
     # (misspelled URL, DNS failure, 403 block, non-XML response, ...).
-    if rss.bozo:
+    elif rss.bozo:
         print("bozo failure: " + feedUrl + ":" + str(rss.get("status")))
         raise SubstackException(f"Could not parse feed '{feedUrl}': {rss.bozo_exception}")
         

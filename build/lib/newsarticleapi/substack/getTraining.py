@@ -142,7 +142,7 @@ def main() -> None:
     articlesParser.add_argument(
         "-n", "--amount",
         type=int,
-        default=200,
+        default=20,
         help="Maximum number of articles to fetch (default: 20).",
     )
     sub.add_parser(

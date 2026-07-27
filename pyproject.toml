@@ -1,0 +1,29 @@
+ok
+[build-system]
+# The build backend pip uses to turn this source tree into a wheel.
+# setuptools is pure-Python here, so the "build" is instant and pip runs it — not you.
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "newsarticleapi"
+version = "0.1.0"
+description = "Scrapers that pull articles from Substack, Hacker News, and news RSS feeds into one normalized JSON shape."
+readme = "readme.MD"
+requires-python = ">=3.9"          # collect.py uses `list[str]` type hints (3.9+)
+# Runtime dependencies. Floors (>=) rather than exact pins so projects that
+# import this package can resolve compatible versions; tighten if you need
+# reproducibility.
+dependencies = [
+    "feedparser>=6.0.12",
+    "beautifulsoup4>=4.15.0",
+    "requests>=2.34.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["newsarticleapi*"]

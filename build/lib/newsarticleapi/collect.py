@@ -38,29 +38,6 @@ def dedupBySource(articles: list[dict]) -> list[dict]:
     return unique
 
 
-def balanceByTag(articles: list[dict], excluded: list[str] = [], quota: int = 3) -> list[dict]:
-    excluded = set(excluded)
-    kept = [a for a in articles if not excluded.intersection(a.get("tags", []))]
-
-    # bucket by tag; a multi-tag article lands in each of its buckets
-    keep = []
-    bucketsCounts: dict[str,int ] = {}
-    for article in kept:
-        overflowedtags = [tag for tag in article.get("tags", []) if bucketsCounts.get(tag,0) > quota]
-        if len(overflowedtags) == len(article.get("tags", [])):
-            continue
-
-        for tag in article.get("tags", []):
-            bucketsCounts[tag] = bucketsCounts.get(tag, 0) + 1
-        
-        keep.append(article)
-    
-
-
-    return keep
-
-
-
 def loadRecent(x: int) -> dict[str, list[dict]]:
     # read the most recent x daily files from each source's folder and return the
     # articles keyed by stream, so the sources stay separable (never merged).
