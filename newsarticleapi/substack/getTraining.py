@@ -50,7 +50,7 @@ def collectArticles(db: ssdb.SubstackDB, handles: list[str],timeCutoff, amountOf
     return massResponse
 
 
-def getArticles(tag: str | None = None, timeCutoff=oneDayAgo, amount: int = 20) -> list[dict]:
+def getArticles(tag: str | None = None, timeCutoff=oneDayAgo, amount: int = 300) -> list[dict]:
     # tag=None pulls every creator; a tag pulls only creators carrying it.
     # each article is stamped with its creator's tags inside collectArticles.
     db = ssdb.SubstackDB()
